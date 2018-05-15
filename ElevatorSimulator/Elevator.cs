@@ -46,12 +46,12 @@ namespace ElevatorSimulator
             Console.Out.WriteLine(InService? $"Coming Into Service at floor {Floor}": $"Car {CarNumber} going out of service at floor {Floor} after {NumTrips} runs." );
         }
 
-        private bool WillAnswerCallToFloor(int floor)
+        public bool WillAnswerCallToFloor(int floor)
         {
-            return false;
+            return true;
         }
 
-        public void Think(float deltaTime )
+        public void Think(long deltaTime )
         {
 
         }
