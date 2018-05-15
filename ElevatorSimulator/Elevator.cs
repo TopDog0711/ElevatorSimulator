@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ElevatorSimulator
 {
@@ -32,6 +34,8 @@ namespace ElevatorSimulator
         private long MaxTimeForService = 100;
         private long CarSpeedTicksPerFloor = 10;
 
+        Queue<int> FloorQueue = new Queue<int>();
+
         public Elevator()
         {
             Console.Out.WriteLine($"Creating Elevator -> Floor is {CurrentFloor}, CarNumber is {CarNumber}");
@@ -50,17 +54,10 @@ namespace ElevatorSimulator
 
         public void AcceptCallToFloor(int toFloor)
         {
-            RequestedFloor = toFloor;
-            Console.Out.WriteLine($"Accepting call from floor {CurrentFloor} to floor {RequestedFloor}");
+            FloorQueue.Enqueue(toFloor);
+            Console.Out.WriteLine($"Car {CarNumber} Accepting call from floor {CurrentFloor} to floor {toFloor}");
 
-            Direction = CurrentFloor < RequestedFloor ? eDirection.Up : eDirection.Down;
-            CarState = eCarState.Moving;
-
-            NumTrips++;
-            if(NumTrips >= 100)
-            {
-                SetService(false);
-            }
+          
         }
 
         public void PlaceBackInService()
@@ -74,7 +71,7 @@ namespace ElevatorSimulator
         {
             CarState = inService ? eCarState.Waiting : eCarState.OutOfService;
 
-            Console.Out.WriteLine(inService ? $"Coming Into Service at floor {CurrentFloor}": $"Car {CarNumber} going out of service at floor {CurrentFloor} after {NumTrips} runs." );
+            Console.Out.WriteLine(inService ? $"Car {CarNumber} coming Into Service at floor {CurrentFloor}": $"Car {CarNumber} going out of service at floor {CurrentFloor} after {NumTrips} runs." );
         }
 
         private void DoService(long ticks)
@@ -95,12 +92,35 @@ namespace ElevatorSimulator
             if(MovingTime >= CarSpeedTicksPerFloor)
             {
                 MovingTime = 0;
-                CurrentFloor = Direction == eDirection.Up ? CurrentFloor + 1 : CurrentFloor -1;
 
-                if(CurrentFloor == RequestedFloor)
+                if (CurrentFloor != RequestedFloor)
                 {
-                    Console.Out.WriteLine($"Car {CarNumber} Arrived at floor {RequestedFloor}, Waiting ");
-                    CarState = eCarState.Waiting;
+                    CurrentFloor = Direction == eDirection.Up ? CurrentFloor + 1 : CurrentFloor - 1;
+                }
+                
+                if(CurrentFloor == RequestedFloor || (FloorQueue.Any()&& FloorQueue.Peek() == CurrentFloor))
+                {
+                    if (FloorQueue.Any() && FloorQueue.Peek() == CurrentFloor)
+                    {
+                        Console.Out.WriteLine($"Car {CarNumber} Arrived at floor {CurrentFloor}, Waiting ");
+                        FloorQueue.Dequeue();
+                    }
+                    else
+                    {
+                        Console.Out.WriteLine($"Car {CarNumber} Arrived at floor {RequestedFloor}, Waiting ");
+                    }
+                    
+
+                    NumTrips++;
+                    if (NumTrips >= 100)
+                    {
+                        SetService(false);
+                    }
+                    else
+                    {
+                        GetNextFloorInQueue();
+                    }
+
                 }
                 else
                 {
@@ -108,8 +128,22 @@ namespace ElevatorSimulator
                     CarState = eCarState.Moving;
                 }
             }
-           
 
+
+        }
+
+        void GetNextFloorInQueue()
+        {
+            if (FloorQueue.Any())
+            {
+                RequestedFloor = FloorQueue.Dequeue();
+                Direction = CurrentFloor < RequestedFloor ? eDirection.Up : eDirection.Down;
+                CarState = eCarState.Moving;
+            }
+            else
+            {
+                CarState = eCarState.Waiting;
+            }
         }
 
         public bool WillAnswerCallToFloor(int floor)
@@ -122,6 +156,7 @@ namespace ElevatorSimulator
                     }
                 case eCarState.Waiting:
                     {
+                        GetNextFloorInQueue();
                         return true;
                     }
                 case eCarState.Moving:
