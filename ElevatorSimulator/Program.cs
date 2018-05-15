@@ -10,62 +10,31 @@ namespace ElevatorSimulator
     {
         static void Main(string[] args)
         {
+            Controller elevatorController = new Controller(10);
+
         }
     }
 
-
-    public class Elevator
+    public class Controller
     {
-        public int Floor { get; set; }
-        private bool InService;
-        private int CarNumber;
-        private int NumTrips;
-        
-        public Elevator()
+        List<Elevator> ListOfCars = new List<Elevator>();
+
+        public Controller()
         {
-            Console.Out.WriteLine($"Creating Elevator -> Floor is {Floor}, CarNumber is {CarNumber}");
-            NumTrips = 0;
-            InService = true;
+            Console.Out.WriteLine($"Creating Controller with no cars");
         }
 
-        public Elevator(int beginFloor, int carNum) : this()
+        public Controller(int numCars): this()
         {
-            
-            Floor = beginFloor;
-            CarNumber = carNum;
-            Console.Out.WriteLine($"Creating Elevator -> Setting Floor to {Floor} Setting CarNum to {CarNumber}");
-        }
+            Console.Out.WriteLine($"Creating Controller with {numCars} cars");
 
-        public void MoveToFloor(int toFloor)
-        {
-            Console.Out.WriteLine($"Moving from floor {Floor} to floor {toFloor}");
-            NumTrips++;
-            if(NumTrips >= 100)
+            for(int i = 1; i < numCars+1; i++)
             {
-                SetService(false);
+                ListOfCars.Add(new Elevator(i, i));
             }
         }
 
-        public void Service()
-        {
-            NumTrips = 0;
-            SetService(true);
-        }
 
-        private void SetService(bool inService)
-        {
-            InService = inService;
-            Console.Out.WriteLine(InService? $"Coming Into Service at floor {Floor}": $"Car {CarNumber} going out of service at floor {Floor} after {NumTrips} runs." );
-        }
 
-        private bool WillAnswerCallToFloor(int floor)
-        {
-            return false;
-        }
-
-        public void Think(float deltaTime )
-        {
-
-        }
     }
 }
